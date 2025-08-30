@@ -74,7 +74,7 @@ set_page_head()
 POSTER_PATH = "YPG_Conference_Template.png"  # Make sure to have this file in the same directory
 
 # --- CORE IMAGE PROCESSING FUNCTION ---
-def create_poster(user_image_file, user_name, user_role, photo_scale, photo_pos_x, photo_pos_y, photo_rotation, name_font_size, role_font_size):
+def create_poster(user_image_file, user_name, photo_scale, photo_pos_x, photo_pos_y, photo_rotation, name_font_size):
     try:
         poster_template = Image.open(POSTER_PATH).convert("RGBA")
     except FileNotFoundError:
@@ -122,15 +122,12 @@ def create_poster(user_image_file, user_name, user_role, photo_scale, photo_pos_
         # Using a default font that is likely to be available. 
         # For better results, you can upload a specific .ttf font file and provide its path.
         name_font = ImageFont.truetype("arial.ttf", name_font_size)
-        role_font = ImageFont.truetype("arial.ttf", role_font_size)
     except IOError:
         st.warning("Arial font not found. Using default.")
         name_font = ImageFont.load_default(size=60)
-        role_font = ImageFont.load_default(size=40)
     
     # Coordinates are adjusted for the new template
-    draw.text((poster_template.width/2, 530), user_name.upper(), font=name_font, fill="#FFFFFF", anchor="ms")
-    draw.text((poster_template.width/2, 570), user_role, font=role_font, fill="#FFFFFF", anchor="ms")
+    draw.text((poster_template.width/2, 550), user_name.upper(), font=name_font, fill="#FFFFFF", anchor="ms")
     
     return canvas
 
@@ -143,8 +140,6 @@ with st.sidebar:
     st.header("1. Your Details")
     user_upload = st.file_uploader("Upload Your Headshot")
     user_name = st.text_input("Enter Your Name", "Your Name")
-    user_role = st.text_input("Enter Your Role", "Your Role")
-
 
     st.header("2. Photo Controls")
     photo_scale = st.number_input("Zoom Photo", min_value=0.5, max_value=4.0, value=1.0, step=0.1)
@@ -154,21 +149,17 @@ with st.sidebar:
 
     st.header("3. Text Controls")
     name_font_size = st.number_input("Name Font Size", min_value=20, max_value=150, value=60, step=2)
-    role_font_size = st.number_input("Role Font Size", min_value=15, max_value=100, value=40, step=2)
-
 
 # --- MAIN PANEL LOGIC ---
 if user_upload and user_name:
     final_poster = create_poster(
         user_image_file=user_upload,
         user_name=user_name,
-        user_role=user_role,
         photo_scale=photo_scale,
         photo_pos_x=photo_pos_x,
         photo_pos_y=photo_pos_y,
         photo_rotation=photo_rotation,
-        name_font_size=name_font_size,
-        role_font_size=role_font_size
+        name_font_size=name_font_size
     )
     
     if final_poster:
@@ -185,7 +176,7 @@ if user_upload and user_name:
             mime="image/png"
         )
 else:
-    st.info("⬅️ Start by uploading your photo, name and role in the sidebar.")
+    st.info("⬅️ Start by uploading your photo and name in the sidebar.")
     try:
         st.image(POSTER_PATH, caption="Poster Template", use_container_width=True)
     except FileNotFoundError:
