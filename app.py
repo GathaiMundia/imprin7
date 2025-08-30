@@ -71,14 +71,15 @@ def set_page_head():
 set_page_head()
 
 # --- FILE AND CONFIGURATION CONSTANTS ---
-POSTER_PATH = "YPG_Conference_Template.png"  # Make sure to have this file in the same directory
+POSTER_PATH = "YPG_Conference_Template.png"
+FONT_PATH = "PhotographSignature.ttf"  # Path to your custom font
 
 # --- CORE IMAGE PROCESSING FUNCTION ---
 def create_poster(user_image_file, user_name, photo_scale, photo_pos_x, photo_pos_y, photo_rotation, name_font_size):
     try:
         poster_template = Image.open(POSTER_PATH).convert("RGBA")
     except FileNotFoundError:
-        st.error("The poster template image was not found. Please make sure 'YPG_Conference_Template.png' is in the same directory as the app.py file.")
+        st.error(f"The poster template image was not found. Please make sure '{POSTER_PATH}' is in the same directory as the app.py file.")
         return None
 
     user_photo = Image.open(user_image_file)
@@ -98,7 +99,7 @@ def create_poster(user_image_file, user_name, photo_scale, photo_pos_x, photo_po
     if photo_rotation != 0:
         user_photo = user_photo.rotate(photo_rotation, resample=Image.Resampling.BICUBIC, expand=True)
     
-    base_photo_width = 350 # Adjusted for the new template
+    base_photo_width = 350
     aspect_ratio = user_photo.height / user_photo.width
     new_width = int(base_photo_width * photo_scale)
     new_height = int(new_width * aspect_ratio)
@@ -110,24 +111,25 @@ def create_poster(user_image_file, user_name, photo_scale, photo_pos_x, photo_po
     draw_mask.ellipse((0, 0, new_width, new_height), fill=255)
 
     photo_paste_x = (canvas.width // 2) - (new_width // 2) + photo_pos_x
-    photo_paste_y = 300 - (new_height // 2) + photo_pos_y # Adjusted for the new template
+    photo_paste_y = 300 - (new_height // 2) + photo_pos_y
     
-    # Paste the photo with the circular mask
+    # Paste the photo with the circular mask (background relative to the name)
     canvas.paste(user_photo, (photo_paste_x, photo_paste_y), mask)
+    
+    # Paste the poster template (this will draw the cutout over the photo)
     canvas.paste(poster_template, (0, 0), poster_template)
 
     draw = ImageDraw.Draw(canvas)
     
     try:
-        # Using a default font that is likely to be available. 
-        # For better results, you can upload a specific .ttf font file and provide its path.
-        name_font = ImageFont.truetype("arial.ttf", name_font_size)
+        # Load your custom font
+        name_font = ImageFont.truetype(FONT_PATH, name_font_size)
     except IOError:
-        st.warning("Arial font not found. Using default.")
+        st.warning(f"Custom font at '{FONT_PATH}' not found. Using default.")
         name_font = ImageFont.load_default(size=60)
     
-    # Coordinates are adjusted for the new template
-    draw.text((poster_template.width/2, 550), user_name.upper(), font=name_font, fill="#FFFFFF", anchor="ms")
+    # Draw the user's name on the poster (this will be in the foreground)
+    draw.text((poster_template.width/2, 550), user_name, font=name_font, fill="#FFFFFF", anchor="ms")
     
     return canvas
 
@@ -180,4 +182,4 @@ else:
     try:
         st.image(POSTER_PATH, caption="Poster Template", use_container_width=True)
     except FileNotFoundError:
-        st.error("The poster template image was not found. Please make sure 'YPG_Conference_Template.png' is in the same directory as the app.py file.")
+        st.error(f"The poster template image was not found. Please make sure '{POSTER_PATH}' is in the same directory as the app.py file.")
